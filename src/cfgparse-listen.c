@@ -2318,9 +2318,12 @@ stats_error_parsing:
 				} else if (strcmp(args[cur_arg], "if-none") == 0) {
 					curproxy->options &= ~PR_O_FF_ALWAYS;
 					cur_arg += 1;
+				} else if (strcmp(args[cur_arg], "none") == 0) {
+					curproxy->options &= ~(PR_O_FWDFOR | PR_O_FF_ALWAYS);
+					cur_arg += 1;
 				} else {
 					/* unknown suboption - catchall */
-					ha_alert("parsing [%s:%d] : '%s %s' only supports optional values: 'except', 'header' and 'if-none'.\n",
+					ha_alert("parsing [%s:%d] : '%s %s' only supports optional values: 'except', 'header', 'if-none' and 'none'.\n",
 						 file, linenum, args[0], args[1]);
 					err_code |= ERR_ALERT | ERR_FATAL;
 					goto out;

@@ -8780,7 +8780,7 @@ no option dontlognull
              section 8 about logging.
 
 
-option forwardfor [ except <network> ] [ header <name> ] [ if-none ]
+option forwardfor [ except <network> ] [ header <name> ] [ if-none ] [ none ]
   Enable insertion of the X-Forwarded-For header to requests sent to servers
   May be used in sections :   defaults | frontend | listen | backend
                                  yes   |    yes   |   yes  |   yes
@@ -8820,6 +8820,10 @@ option forwardfor [ except <network> ] [ header <name> ] [ if-none ]
   added if it is not present. This should only be used in perfectly trusted
   environment, as this might cause a security issue if headers reaching HAProxy
   are under the control of the end-user.
+
+  Finally, the keyword "none" may be used to not sent any header to backend.
+  This is useful if for example you have "option forwardfor" in a "defaults"
+  section.
 
   This option may be specified either in the frontend or in the backend. If at
   least one of them uses it, the header will be added. Note that the backend's

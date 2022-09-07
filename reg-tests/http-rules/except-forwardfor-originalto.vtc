@@ -1,4 +1,4 @@
-varnishtest "Test IPv4/IPv6 except param for the forwardfor and originalto options"
+varnishtest "Test params for the forwardfor and originalto options"
 #REQUIRE_VERSION=2.4
 
 # This config tests the except parameter for the HTTP forwardfor and originalto
@@ -28,6 +28,8 @@ haproxy h1 -conf {
 	use_backend be3 if { path /req3 }
 	use_backend be4 if { path /req4 }
 	use_backend be5 if { path /req5 }
+	use_backend be6 if { path /req6 }
+	use_backend be7 if { path /req7 }
 
     frontend fe2
         bind "fd@${fe2}"
@@ -56,6 +58,16 @@ haproxy h1 -conf {
     backend be5
         option forwardfor except 2001:db8:1f89::/48
         option originalto except 2001:db8:1f89::/48
+        server s1 ${h1_fe2_addr}:${h1_fe2_port}
+
+    backend be6
+        option forwardfor none
+        server s1 ${h1_fe2_addr}:${h1_fe2_port}
+
+    backend be7
+        option forwardfor except 127.0.0.1 header X-Client
+        option forwardfor none
+        option forwardfor
         server s1 ${h1_fe2_addr}:${h1_fe2_port}
 } -start
 
@@ -140,4 +152,19 @@ client c1 -connect ${h1_fe1_sock} {
     expect resp.status == 200
     expect resp.http.x-ff == "2001:db8:1f90::1"
     expect resp.http.x-ot == "2001:db8:1f90::1"
+
+    txreq -req GET -url /req6 \
+        -hdr "x-src: 2001:db8:1f90::1" \
+        -hdr "x-dst: 2001:db8:1f90::1"
+    rxresp
+    expect resp.status == 200
+    expect resp.http.x-ff == <undef>
+    expect resp.http.x-ot == <undef>
+
+    txreq -req GET -url /req7 \
+        -hdr "x-src: 127.0.0.1" \
+        -hdr "x-dst: 127.0.0.1"
+    rxresp
+    expect resp.status == 200
+    expect resp.http.x-ff == "127.0.0.1"
 } -run
